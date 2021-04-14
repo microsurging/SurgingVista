@@ -1,6 +1,6 @@
 {
   "SkyWalking": {
-    "ServiceName": "Surging.Services.Server",
+    "ServiceName": "Surging.Services.Server1",
     "Namespace": "",
     "HeaderVersions": [
       "sw6"

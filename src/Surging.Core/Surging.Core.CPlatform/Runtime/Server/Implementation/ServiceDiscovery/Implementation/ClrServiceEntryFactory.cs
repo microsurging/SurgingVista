@@ -115,6 +115,7 @@ namespace Surging.Core.CPlatform.Runtime.Server.Implementation.ServiceDiscovery.
                 Methods=httpMethods,
                 MethodName = method.Name,
                 Type = method.DeclaringType,
+                Parameters= method.GetParameters(),
                 Attributes = attributes,
                 Func = (key, parameters) =>
              {

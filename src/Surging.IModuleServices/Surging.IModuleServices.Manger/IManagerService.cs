@@ -7,7 +7,7 @@ using Surging.Core.CPlatform.Support;
 using Surging.Core.CPlatform.Support.Attributes;
 using System.Threading.Tasks;
 
-namespace Surging.IModuleServices.User
+namespace Surging.IModuleServices.Manager
 {
 
     [ServiceBundle("api/{Service}")]
@@ -15,5 +15,9 @@ namespace Surging.IModuleServices.User
     {
         [Command(Strategy = StrategyType.Injection, ShuntStrategy = AddressSelectorMode.HashAlgorithm, ExecutionTimeoutInMilliseconds = 2500, BreakerRequestVolumeThreshold = 3, Injection = @"return 1;", RequestCacheEnabled = false)]
         Task<string> SayHello(string name);
+
+        Task<string> Say(string name);
+
+        Task<bool> Test(string test, string ToList, string DomainID);
     }
 }

@@ -5,7 +5,7 @@ using Surging.Core.Protocol.Mqtt.Internal.Services;
 using Surging.Core.ProxyGenerator;
 using Surging.IModuleServices.Common;
 using Surging.IModuleServices.Common.Models;
-using Surging.IModuleServices.User;
+using Surging.IModuleServices.Manager;
 using System;
 using System.Collections.Generic;
 using System.Text;

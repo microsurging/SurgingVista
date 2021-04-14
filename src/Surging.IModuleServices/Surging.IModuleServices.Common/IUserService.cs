@@ -120,7 +120,6 @@ new Surging.IModuleServices.Common.Models.UserModel
         /// 测试无参数调用
         /// </summary>
         /// <returns>返回是否成功</returns>
-       
         Task<bool> GetDictionary();
 
        /// <summary>

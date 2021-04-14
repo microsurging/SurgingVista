@@ -65,7 +65,7 @@ namespace Surging.Core.CPlatform.Messages
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsInvokeMessage()
         {
-            return ContentType == MessagePackTransportMessageType.remoteInvokeMessageTypeName;
+            return ContentType == MessagePackTransportMessageType.remoteInvokeMessageTypeName || ContentType== "RemoteInvokeMessage";
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Surging.Core.CPlatform.Messages
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsInvokeResultMessage()
         {
-            return ContentType == MessagePackTransportMessageType.remoteInvokeResultMessageTypeName;
+            return ContentType == MessagePackTransportMessageType.remoteInvokeResultMessageTypeName || ContentType== "RemoteInvokeResultMessage";
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

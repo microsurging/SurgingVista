@@ -49,6 +49,7 @@ namespace Surging.Services.Server
                         Core.CPlatform.AppConfig.GetSection("Logging"));
                 })
                 .UseServer(options => { })
+                .UseProxy()
                 .UseConsoleLifetime()
                 .Configure(build =>
                 build.AddCacheFile("${cachepath}|cacheSettings.json", basePath: AppContext.BaseDirectory, optional: false, reloadOnChange: true))

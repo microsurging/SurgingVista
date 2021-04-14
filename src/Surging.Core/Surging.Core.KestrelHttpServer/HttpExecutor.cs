@@ -22,6 +22,8 @@ using Surging.Core.CPlatform.Diagnostics;
 using Surging.Core.CPlatform.Exceptions;
 using Surging.Core.CPlatform.Transport.Implementation;
 using Surging.Core.KestrelHttpServer.Internal;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace Surging.Core.KestrelHttpServer
 {
@@ -107,7 +109,11 @@ namespace Surging.Core.KestrelHttpServer
         {
             HttpResultMessage<object> resultMessage = new HttpResultMessage<object>();
             try {
-                resultMessage.Entity=await _serviceProxyProvider.Invoke<object>(httpMessage.Parameters, httpMessage.RoutePath, httpMessage.ServiceKey);
+               var  entity=await _serviceProxyProvider.Invoke<Object>(httpMessage.Parameters, httpMessage.RoutePath, httpMessage.ServiceKey);
+              
+                entity = JsonConvert.DeserializeObject(entity.ToString(), typeof(Object));
+              
+                resultMessage.Entity = entity;
                 resultMessage.IsSucceed = resultMessage.Entity != default;
                 resultMessage.StatusCode = resultMessage.IsSucceed ? (int)StatusCode.Success : (int)StatusCode.RequestError;
             }
@@ -177,6 +183,7 @@ namespace Surging.Core.KestrelHttpServer
             {
                 if (_logger.IsEnabled(LogLevel.Error))
                     _logger.LogError(exception, "发送响应消息时候发生了异常。");
+                
             }
         }
 

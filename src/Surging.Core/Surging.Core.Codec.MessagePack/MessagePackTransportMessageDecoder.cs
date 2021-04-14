@@ -2,6 +2,8 @@
 using Surging.Core.Codec.MessagePack.Utilities;
 using Surging.Core.CPlatform.Messages;
 using Surging.Core.CPlatform.Transport.Codec;
+using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Surging.Core.Codec.MessagePack
@@ -12,10 +14,12 @@ namespace Surging.Core.Codec.MessagePack
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TransportMessage Decode(byte[] data)
-        {
+        { 
             var message = SerializerUtilitys.Deserialize<MessagePackTransportMessage>(data);
-            return message.GetTransportMessage();
+            return message.GetTransportMessage();  
         }
+
+       
 
         #endregion Implementation of ITransportMessageDecoder
     }

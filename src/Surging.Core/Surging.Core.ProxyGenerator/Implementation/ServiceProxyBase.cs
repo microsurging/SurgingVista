@@ -66,7 +66,7 @@ namespace Surging.Core.ProxyGenerator.Implementation
             var vt = _commandProvider.GetCommand(serviceId); 
             var command = vt.IsCompletedSuccessfully ? vt.Result : await vt;
             RemoteInvokeResultMessage message = null;
-            var decodeJOject = typeof(T) == UtilityType.ObjectType;
+            var decodeJOject = typeof(T) == UtilityType.ObjectType|| typeof(T) == UtilityType.JObjectType;
             IInvocation invocation = null;
             var serviceRoute =await _serviceRouteProvider.Locate(serviceId);
             if ((serviceRoute ==null || !serviceRoute.ServiceDescriptor.ExistIntercept()) ||decodeJOject)

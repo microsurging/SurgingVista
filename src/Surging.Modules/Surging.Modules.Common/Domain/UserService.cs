@@ -12,7 +12,7 @@ using Surging.Core.ProxyGenerator;
 using Surging.Core.Thrift.Attributes;
 using Surging.IModuleServices.Common;
 using Surging.IModuleServices.Common.Models;
-using Surging.IModuleServices.User;
+using Surging.IModuleServices.Manager;
 using Surging.Modules.Common.Repositories;
 using System;
 using System.Collections.Generic;

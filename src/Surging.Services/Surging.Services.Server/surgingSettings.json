@@ -2,7 +2,7 @@
   "Surging": {
     "Ip": "${Surging_Server_IP}|127.0.0.1",
     "WatchInterval": 30,
-    "Port": "${Surging_Server_Port}|98",
+    "Port": "${Surging_Server_Port}|83",
     "MappingIp": "${Mapping_ip}",
     "MappingPort": "${Mapping_Port}",
     "Token": "true",
@@ -13,14 +13,14 @@
     "Weight": 20,
     "MaxConcurrentRequests": 20,
     "DisconnTimeInterval": 30,
-    "ExecutionTimeoutInMilliseconds": 1000,
+    "ExecutionTimeoutInMilliseconds": 6000,
     "Protocol": "${Protocol}|None", //Http、Tcp、None
     "RootPath": "${RootPath}|D:\\userapp",
     "WebRootPath": "${WebRootPath}|D:\\UserApp\\wwwroot",
     "IsModulePerLifetimeScope": false,
     "ReloadOnChange": false,
     "Ports": {
-      "HttpPort": "${HttpPort}|280",
+      "HttpPort": "${HttpPort}|28",
       "WSPort": "${WSPort}|96",
       "MQTTPort": "${MQTTPort}|97",
       "GrpcPort": "${GrpcPort}|95"
@@ -29,7 +29,7 @@
     "Packages": [
       {
         "TypeName": "EnginePartModule",
-        "Using": "${UseEngineParts}|ServiceProxyModule;ThriftModule;SerilogModule;NLogModule;MessagePackModule;ConsulModule;WSProtocolModule;MqttProtocolModule;EventBusRabbitMQModule;CachingModule;KestrelHttpModule;SwaggerModule;ApiGeteWayModule;SkywalkingModule;KestrelNLogModule;ServiceHostModule;GrpcModule;ApolloModule;"
+        "Using": "${UseEngineParts}|ServiceProxyModule;ProtokollwandlerModule;DotNettyModule;SerilogModule;NLogModule;ConsulModule;MessagePackModule;WSProtocolModule;MqttProtocolModule;EventBusRabbitMQModule;CachingModule;KestrelHttpModule;SwaggerModule;ApiGeteWayModule;SkywalkingModule;KestrelNLogModule;GrpcModule;ApolloModule;LiveStreamModule;"
       }
     ]
   }, //如果引用多个同类型的组件，需要配置Packages，如果是自定义按需引用，无需配置Packages
@@ -38,7 +38,7 @@
     "SessionTimeout": "${Register_SessionTimeout}|50",
     "RoutePath": "${Register_RoutePath}",
     "ReloadOnChange": true,
-    "EnableChildrenMonitor": false
+    "EnableChildrenMonitor": true
   },
   "Stage": {
     "EnableHttps": true, // 不设置ports，默认httpsPort:443
@@ -52,7 +52,7 @@
       "AuthorizationRoutePath": "api/user/authentication",
       "AuthorizationServiceKey": "User",
       "TokenEndpointPath": "api/oauth2/token",
-      "CacheMode": "MemoryCache" //MemoryCache or  gateway.Redis save token
+      "CacheMode": "ddlCache.Redis" //MemoryCache or  gateway.Redis save token
     },
     "AccessPolicy": {
       "Origins": [ "http://127.0.0.1:1927", "http://localhost:927" ],
@@ -74,6 +74,17 @@
     "HttpsPort": "${StageHttpsPorts}|449,446",
     "HttpPorts": "${StageHttpPorts}|285,282,283"
   },
+  "TransferContract": [
+    {
+      "Name": "webservice",
+      "Endpoint": "http://localhost:56398"
+    },
+    {
+      "Name": "restservice",
+      "Type": "Rest",
+      "Endpoint": "http://localhost:53023"
+    }
+  ],
   "Dns": {
     "RootDnsAddress": "192.168.1.1",
     "QueryTimeout": 1000
@@ -120,6 +131,11 @@
       "IgnoreExtensions": true,
       "EmitOnPing": false
     }
+  },
+  "LiveStream": {
+    "RtmpPort": 80,
+    "HttpFlvPort": 78,
+    "EnableLog": true
   },
   "EventBus": {
     "EventBusConnection": "${EventBusConnection}|localhost",
