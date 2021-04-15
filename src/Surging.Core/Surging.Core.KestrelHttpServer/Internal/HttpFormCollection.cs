@@ -43,7 +43,7 @@ namespace Surging.Core.KestrelHttpServer.Internal
             {
                 return _files ?? EmptyFiles;
             }
-             set { _files = value; }
+            private set { _files = value; }
         }
           
         [IgnoreMember]
