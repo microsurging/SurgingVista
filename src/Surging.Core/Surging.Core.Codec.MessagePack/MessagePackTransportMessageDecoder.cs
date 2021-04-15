@@ -14,9 +14,16 @@ namespace Surging.Core.Codec.MessagePack
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TransportMessage Decode(byte[] data)
-        { 
-            var message = SerializerUtilitys.Deserialize<MessagePackTransportMessage>(data);
-            return message.GetTransportMessage();  
+        {
+            try
+            {
+                var message = SerializerUtilitys.Deserialize<MessagePackTransportMessage>(data);
+                return message.GetTransportMessage();
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
         }
 
        
