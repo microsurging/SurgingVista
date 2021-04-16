@@ -124,9 +124,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetty.Codecs.Rtmp", "DotNetty.Codecs\DotNetty.Codecs.Rtmp\DotNetty.Codecs.Rtmp.csproj", "{C690B055-451A-44E0-A9AD-F6A8A5BB0DFD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetty.Codecs.Rtmp", "DotNetty.Codecs\DotNetty.Codecs.Rtmp\DotNetty.Codecs.Rtmp.csproj", "{C690B055-451A-44E0-A9AD-F6A8A5BB0DFD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Surging.Core.LiveStream", "Surging.Core\Surging.Core.LiveStream\Surging.Core.LiveStream.csproj", "{3DBF50E1-A3B8-442A-B486-10177A761803}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Surging.Core.LiveStream", "Surging.Core\Surging.Core.LiveStream\Surging.Core.LiveStream.csproj", "{3DBF50E1-A3B8-442A-B486-10177A761803}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

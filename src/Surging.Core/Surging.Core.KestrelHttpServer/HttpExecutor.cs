@@ -110,9 +110,8 @@ namespace Surging.Core.KestrelHttpServer
             HttpResultMessage<object> resultMessage = new HttpResultMessage<object>();
             try {
                var  entity=await _serviceProxyProvider.Invoke<Object>(httpMessage.Parameters, httpMessage.RoutePath, httpMessage.ServiceKey);
-              
+               if(entity !=null)
                 entity = JsonConvert.DeserializeObject(entity.ToString(), typeof(Object));
-              
                 resultMessage.Entity = entity;
                 resultMessage.IsSucceed = resultMessage.Entity != default;
                 resultMessage.StatusCode = resultMessage.IsSucceed ? (int)StatusCode.Success : (int)StatusCode.RequestError;
