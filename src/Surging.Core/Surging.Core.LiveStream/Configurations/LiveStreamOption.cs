@@ -8,8 +8,15 @@ namespace Surging.Core.LiveStream.Configurations
 	{
 		public int RtmpPort { get; set; }
 		public int HttpFlvPort { get; set; }
-		public bool SaveFlvFile { get; set; }
-		public string SaveFlVFilePath { get; set; }
+
+		public string RouteTemplate { get; set; } = "Live";
+
+		public int ClusterNode { get; set; } = 2;
+
+		public bool DisablePooled { get; set; } = true;
+
+		public bool IsSaveFlvFile { get; set; }
+		public string SaveFlvFilePath { get; set; }
 		public bool EnableHttpFlv { get; set; }
 
 		public bool EnableLog { get; set; }

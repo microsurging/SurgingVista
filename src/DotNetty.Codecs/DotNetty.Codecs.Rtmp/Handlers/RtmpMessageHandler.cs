@@ -2,12 +2,14 @@
 using DotNetty.Codecs.Rtmp.Messages;
 using DotNetty.Codecs.Rtmp.Stream;
 using DotNetty.Common.Internal.Logging;
+using DotNetty.Common.Utilities;
 using DotNetty.Transport.Channels;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DotNetty.Codecs.Rtmp.Handlers
 {
@@ -20,8 +22,15 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 		private RtmpTag _tag;
 		private bool _normalShutdown; 
 		private StreamName _streamName;
+		public readonly Action<IChannelHandlerContext, StreamName, AbstractRtmpMessage> _readAction;
 
 		private readonly ConcurrentDictionary<StreamName, MediaStream> _mediaStreamDic = new ConcurrentDictionary<StreamName, MediaStream>();
+
+		public RtmpMessageHandler(ConcurrentDictionary<StreamName, MediaStream> mediaStreamDic, Action<IChannelHandlerContext, StreamName, AbstractRtmpMessage> readAction, RtmpConfig rtmpConfig) :this(mediaStreamDic)
+		{
+			_readAction = readAction;
+			RtmpConfig.Instance = rtmpConfig;
+		}
 
 		public RtmpMessageHandler(ConcurrentDictionary<StreamName, MediaStream> mediaStreamDic)
 		{
@@ -57,20 +66,25 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 			if (msg is RtmpCommandMessage)
 			{
 				HandleCommand(ctx, (RtmpCommandMessage)msg);
+				
 			}
 			else if (msg is RtmpDataMessage)
 			{
 				HandleDataMessage(ctx, (RtmpDataMessage)msg);
 			}
 			else if (msg is AbstractRtmpMediaMessage)
-			{
+			{ 
 				HandleMedia(ctx, (AbstractRtmpMediaMessage)msg);
+				 _readAction?.Invoke(ctx, _streamName, msg);
 			}
 			else if (msg is UserControlMessageEvent)
 			{
 				HandleUserControl(ctx, (UserControlMessageEvent)msg);
 			}
+			ReferenceCountUtil.Release(msg);
 		}
+
+ 
 
 		private void HandleMedia(IChannelHandlerContext ctx, AbstractRtmpMediaMessage msg)
 		{
@@ -121,6 +135,7 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 					break;
 				case "publish":
 					HandlePublish(ctx, msg);
+					_readAction?.Invoke(ctx, _streamName, msg);
 					break;
 				case "play":
 					HandlePlay(ctx, msg);
@@ -128,6 +143,7 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 				case "deleteStream":
 				case "closeStream":
 					HandleCloseStream(ctx, msg);
+					_readAction?.Invoke(ctx, _streamName, msg);
 					break;
 				default:
 					break;
@@ -215,9 +231,9 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 				await stream.AddSubscriber(ctx.Channel);
 
 			}
-			catch
+			catch(Exception ex)
 			{
-
+				var i = 0;
 			}
 		}
 
@@ -226,13 +242,12 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 			logger.Info($"publish :{msg}");
 			_tag = RtmpTag.Publisher; 
 			var streamType = msg.Command[4].ToString();
-			if (streamType!= "live")
-			{ 
-			  await	ctx.Channel.DisconnectAsync();
-			} 
+			if (streamType != "live")
+			{
+				await ctx.Channel.DisconnectAsync();
+			}
 			var name =  msg.Command[3].ToString();
 			_streamName.Name=name;
-			_streamName.App=streamType; 
 			CreateStream(ctx); 
 			RtmpCommandMessage onStatus = OnStatus("status", "NetStream.Publish.Start", "Start publishing"); 
 			await ctx.WriteAndFlushAsync(onStatus);
@@ -265,6 +280,11 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 			var command = ((Dictionary<string, object>)msg.Command[2]);
 			var app = command.GetValueOrDefault("app").ToString();
 			var clientRequestEncode =  command.GetValueOrDefault("objectEncoding") ;
+			if (!string.Equals(app, RtmpConfig.Instance.App, StringComparison.OrdinalIgnoreCase))
+			{
+				await ctx.CloseAsync();
+				return;
+			}
 			if (clientRequestEncode != null && clientRequestEncode.ToString() == "3")
 			{
 				logger.Error($"client :{ctx} request AMF3 encoding  server  doesn't support");

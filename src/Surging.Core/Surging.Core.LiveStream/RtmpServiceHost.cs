@@ -1,4 +1,5 @@
-﻿using Surging.Core.CPlatform.Runtime.Server.Implementation;
+﻿using Surging.Core.CPlatform.Runtime.Server;
+using Surging.Core.CPlatform.Runtime.Server.Implementation;
 using Surging.Core.CPlatform.Transport;
 using System;
 using System.Collections.Generic;
@@ -14,11 +15,13 @@ namespace Surging.Core.LiveStream
 
         private readonly Func<EndPoint, Task<IMessageListener>> _messageListenerFactory;
         private IMessageListener _serverMessageListener;
+        private readonly IServiceExecutor _serviceExecutor;
 
         #endregion Field
 
-        public RtmpServiceHost(Func<EndPoint, Task<IMessageListener>> messageListenerFactory) : base(null)
+        public RtmpServiceHost(IServiceExecutor serviceExecutor,Func<EndPoint, Task<IMessageListener>> messageListenerFactory) : base(serviceExecutor)
         {
+            _serviceExecutor = serviceExecutor;
             _messageListenerFactory = messageListenerFactory;
         }
 
@@ -40,6 +43,13 @@ namespace Surging.Core.LiveStream
             if (_serverMessageListener != null)
                 return;
             _serverMessageListener = await _messageListenerFactory(endPoint);
+            _serverMessageListener.Received +=  async (sender, message) =>
+            {
+                await Task.Run(() =>
+                {
+                    MessageListener.OnReceived(sender, message);
+                });
+            };
 
         }
 
@@ -48,6 +58,13 @@ namespace Surging.Core.LiveStream
             if (_serverMessageListener != null)
                 return;
             _serverMessageListener = await _messageListenerFactory(new IPEndPoint(IPAddress.Parse(ip), AppConfig.Option.RtmpPort));
+            _serverMessageListener.Received += async (sender, message) =>
+            {
+                await Task.Run(() =>
+                {
+                    MessageListener.OnReceived(sender, message);
+                });
+            };
         }
 
         #endregion Overrides of ServiceHostAbstract

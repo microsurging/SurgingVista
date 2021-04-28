@@ -15,6 +15,8 @@ using DotNetty.Codecs.Rtmp.Handlers;
 using System.Collections.Concurrent;
 using DotNetty.Codecs.Rtmp.Stream;
 using DotNetty.Common.Internal.Logging;
+using DotNetty.Codecs.Rtmp.Messages;
+using DotNetty.Codecs.Rtmp;
 
 namespace Surging.Core.LiveStream
 {
@@ -32,15 +34,19 @@ namespace Surging.Core.LiveStream
         }
 
         public async Task StartAsync(EndPoint endPoint)
-        { 
+        {
+            Environment.SetEnvironmentVariable("io.netty.allocator.numDirectArenas", "0");
+
             var bootstrap = new ServerBootstrap();
+            if (AppConfig.Option.DisablePooled)
+                bootstrap = bootstrap.Option(ChannelOption.Allocator, UnpooledByteBufferAllocator.Default);
            var bossGroup = new MultithreadEventLoopGroup();
            var workerGroup =  new MultithreadEventLoopGroup() ;
             bootstrap.Channel<TcpServerSocketChannel>(); 
             bootstrap
             .Option(ChannelOption.SoBacklog, 128) 
               .ChildOption(ChannelOption.SoKeepalive ,true)
-            .Group(bossGroup, workerGroup)
+            .Group(bossGroup)
             .ChildHandler(new ActionChannelInitializer<IChannel>(channel =>
             {
                 var pipeline = channel.Pipeline;
@@ -48,7 +54,18 @@ namespace Surging.Core.LiveStream
                 pipeline.AddLast(new HandShakeDecoder());
                 pipeline.AddLast(new ChunkDecoder());
                 pipeline.AddLast(new ChunkEncoder());
-                pipeline.AddLast(new RtmpMessageHandler(_mediaStreamDic));
+                pipeline.AddLast(workerGroup,new RtmpMessageHandler(_mediaStreamDic,async (contenxt,key, message) =>
+                {
+                    var dic = new Dictionary<StreamName, AbstractRtmpMessage>();
+                    dic.Add(key, message);
+                    await OnReceived(null, new TransportMessage(dic));
+                    message = null;
+                }, new RtmpConfig
+                {
+                    App = AppConfig.Option.RouteTemplate,
+                    IsSaveFlvFile = AppConfig.Option.IsSaveFlvFile,
+                    SaveFlvFilePath = AppConfig.Option.SaveFlvFilePath
+                }));
            
             }));
             try
@@ -75,9 +92,11 @@ namespace Surging.Core.LiveStream
         }
 
 
-        public Task OnReceived(IMessageSender sender, TransportMessage message)
+        public async Task OnReceived(IMessageSender sender, TransportMessage message)
         {
-            return Task.CompletedTask;
+            if (Received == null)
+                return;
+            await Received(sender, message);
         }
 
         public void Dispose()

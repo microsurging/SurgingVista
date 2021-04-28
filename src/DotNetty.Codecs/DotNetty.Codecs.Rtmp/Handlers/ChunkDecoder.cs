@@ -1,8 +1,10 @@
 ﻿using DotNetty.Buffers;
 using DotNetty.Codecs.Rtmp.AMF;
 using DotNetty.Codecs.Rtmp.Messages;
+using DotNetty.Common.Utilities;
 using DotNetty.Transport.Channels;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
@@ -11,11 +13,9 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 {
 	public class ChunkDecoder : ReplayingDecoder<DecodeState>
 	{
-
-
-		private int _clientChunkSize = 128; 
-		ConcurrentDictionary<int, RtmpHeader> prevousHeaders = new ConcurrentDictionary<int, RtmpHeader>();
-		ConcurrentDictionary<int, IByteBuffer> inCompletePayload = new ConcurrentDictionary<int, IByteBuffer>();
+		private int _clientChunkSize = 128;
+		Dictionary<int, RtmpHeader> prevousHeaders = new  Dictionary<int, RtmpHeader>(4);
+		Dictionary<int, IByteBuffer> inCompletePayload = new Dictionary<int, IByteBuffer>(4);
 
 		private IByteBuffer _currentPayload = null;
 		private int _currentCsid;
@@ -26,12 +26,17 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 
 		public ChunkDecoder(DecodeState state) : base(state) { }
 
-		protected override void Decode(IChannelHandlerContext context, IByteBuffer input, List<object> output)
+		public override void ExceptionCaught(IChannelHandlerContext ctx, Exception exception)
 		{
-
-			var state = State;
-
-			if (state == DecodeState.STATE_HEADER)
+		}
+		protected override void Decode(IChannelHandlerContext context, IByteBuffer input, List<object> output)
+		{ 
+			var state = State; 
+			if(state == DecodeState.NONE)
+			{
+				Checkpoint(DecodeState.STATE_HEADER);
+			}
+			else if (state == DecodeState.STATE_HEADER)
 			{
 				RtmpHeader rtmpHeader = ReadHeader(input);
 
@@ -42,8 +47,10 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 				if (rtmpHeader.Fmt != Constants.CHUNK_FMT_3)
 				{
 					IByteBuffer buffer = Unpooled.Buffer(rtmpHeader.MessageLength, rtmpHeader.MessageLength);
-					inCompletePayload.AddOrUpdate(rtmpHeader.Csid, p=>buffer,(p,v) => buffer);
-					prevousHeaders.AddOrUpdate(rtmpHeader.Csid, p=>rtmpHeader,(p,v)=> rtmpHeader);
+					inCompletePayload.Remove(rtmpHeader.Csid);
+					prevousHeaders.Remove(rtmpHeader.Csid);
+					inCompletePayload.Add(rtmpHeader.Csid, buffer);
+					prevousHeaders.Add(rtmpHeader.Csid,  rtmpHeader);
 				}
 
 				_currentPayload = inCompletePayload.GetValueOrDefault(rtmpHeader.Csid);
@@ -51,7 +58,7 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 				{
 					RtmpHeader previousHeader = prevousHeaders.GetValueOrDefault(rtmpHeader.Csid);
 					_currentPayload = Unpooled.Buffer(previousHeader.MessageLength, previousHeader.MessageLength);
-					inCompletePayload.AddOrUpdate(rtmpHeader.Csid, p=>_currentPayload,(p,v)=> _currentPayload);
+					inCompletePayload.Add(rtmpHeader.Csid,_currentPayload);
 				}
 
 				Checkpoint(DecodeState.STATE_PAYLOAD);
@@ -65,12 +72,11 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 				Checkpoint(DecodeState.STATE_HEADER);
 
 				if (_currentPayload.IsWritable())
-				{
+				{  
 					return;
 				}
 				inCompletePayload.Remove(_currentCsid,out IByteBuffer byteBuffer);
-
-				// then we can decode out payload
+				 
 				IByteBuffer payload = _currentPayload;
 				RtmpHeader header = prevousHeaders.GetValueOrDefault(_currentCsid);
 
@@ -81,8 +87,7 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 				}
 
 				if (msg is SetChunkSize)
-				{
-					// we need chunksize to decode the chunk
+				{ 
 					var scs = (SetChunkSize)msg;
 					_clientChunkSize = scs.ChunkSize;
 

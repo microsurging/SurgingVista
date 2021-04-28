@@ -2,7 +2,7 @@
   "Surging": {
     "Ip": "${Surging_Server_IP}|127.0.0.1",
     "WatchInterval": 30,
-    "Port": "${Surging_Server_Port}|81",
+    "Port": "${Surging_Server_Port}|82",
     "MappingIp": "${Mapping_ip}",
     "MappingPort": "${Mapping_Port}",
     "Token": "true",
@@ -133,9 +133,10 @@
     }
   },
   "LiveStream": {
-    "RtmpPort": 80,
-    "HttpFlvPort": 78,
-    "EnableLog": true
+    "RtmpPort": 76,
+    "HttpFlvPort": 77,
+    "EnableLog": true,
+    "RouteTemplate": "live1"
   },
   "EventBus": {
     "EventBusConnection": "${EventBusConnection}|localhost",

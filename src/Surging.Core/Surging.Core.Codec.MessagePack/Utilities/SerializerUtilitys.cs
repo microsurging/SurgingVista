@@ -9,7 +9,7 @@ namespace Surging.Core.Codec.MessagePack.Utilities
     {
         static SerializerUtilitys()
         {
-            CompositeResolver.Create(NativeDateTimeResolver.Instance, PrimitiveObjectResolver.Instance, ContractlessStandardResolverAllowPrivate.Instance, StandardResolver.Instance);
+            CompositeResolver.Create(NativeDateTimeResolver.Instance,  ContractlessStandardResolverAllowPrivate.Instance, StandardResolver.Instance);
         }
 
         public static byte[] Serialize<T>(T instance)

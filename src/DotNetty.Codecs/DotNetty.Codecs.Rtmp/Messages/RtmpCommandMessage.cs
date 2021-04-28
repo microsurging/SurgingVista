@@ -1,15 +1,19 @@
 ﻿using DotNetty.Buffers;
 using DotNetty.Codecs.Rtmp.AMF;
+using MessagePack;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace DotNetty.Codecs.Rtmp.Messages
 {
+	[MessagePackObject]
 	public class RtmpCommandMessage : AbstractRtmpMessage
 	{
+		[Key(2)]
 		public List<Object> Command { get; set; }
 
+		[SerializationConstructor]
 		public RtmpCommandMessage(List<Object> command)
 		{
 			Command = command;

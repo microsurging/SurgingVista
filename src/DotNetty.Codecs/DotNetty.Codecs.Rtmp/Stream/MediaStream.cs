@@ -39,21 +39,23 @@ namespace DotNetty.Codecs.Rtmp.Stream
 			_httpFLvSubscribers = new List<IChannel>();
 			_content = new List<AbstractRtmpMediaMessage>();
 			_streamName = streamName;
+			if(RtmpConfig.Instance.IsSaveFlvFile)
 			CreateFileStream();
 		}
 
-		public void AddContent(AbstractRtmpMediaMessage msg)
+		public void AddContent(AbstractRtmpMediaMessage msg,bool isClient=false)
 		{
-
-			if (_streamName.IsObsClient)
+			if (!isClient)
 			{
-				HandleObsStream(msg);
+				if (_streamName.IsObsClient)
+				{
+					HandleObsStream(msg);
+				}
+				else
+				{
+					HandleNonObsStream(msg);
+				}
 			}
-			else
-			{
-				HandleNonObsStream(msg);
-			}
-
 			if (msg is VideoMessage)
 			{
 				VideoMessage vm = (VideoMessage)msg;
@@ -78,8 +80,8 @@ namespace DotNetty.Codecs.Rtmp.Stream
 			}
 
 			_content.Add(msg);
-
-			WriteFlv(msg);
+			if (RtmpConfig.Instance.IsSaveFlvFile)
+				WriteFlv(msg);
 			BroadCastToSubscribers(msg);
 		}
 
@@ -167,7 +169,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 		{
 			if (_flvOutput == null)
 			{
-				logger.Error($"no flv file existed for stream : {_streamName}");
+				//logger.Error($"no flv file existed for stream : {_streamName}");
 				return;
 			}
 			try
@@ -239,7 +241,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 
 		private void CreateFileStream()
 		{
-			var path = _streamName.App + "_" + _streamName.Name;
+			var path =Path.Combine( RtmpConfig.Instance.SaveFlvFilePath, _streamName.App + "_" + _streamName.Name);
 			try
 			{
 				var fos = new FileStream(path, FileMode.OpenOrCreate);
@@ -289,7 +291,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 
 		}
 
-		private async void BroadCastToSubscribers(AbstractRtmpMediaMessage msg)
+		public async void BroadCastToSubscribers(AbstractRtmpMediaMessage msg)
 		{
 			var iterator = _subscribers.GetEnumerator();
 			foreach (var item in _subscribers)
@@ -335,7 +337,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 		{
 			try
 			{
-				if (_flvOutput != null)
+				if ( RtmpConfig.Instance.IsSaveFlvFile &&  _flvOutput != null)
 				{
 					try
 					{
@@ -343,6 +345,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 					}
 					catch (IOException e)
 					{
+						_flvOutput.Close();
 						logger.Error("close file  failed", _flvOutput);
 					}
 				}

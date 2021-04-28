@@ -1,13 +1,16 @@
 ﻿using DotNetty.Buffers;
 using DotNetty.Codecs.Rtmp.AMF;
+using MessagePack;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace DotNetty.Codecs.Rtmp.Messages
 {
+	[MessagePackObject]
 	public class AudioMessage : AbstractRtmpMediaMessage
 	{
+		[Key(4)]
 		public byte[] AudioData { get; set; }
 
 		public AudioMessage(byte[] audioData)

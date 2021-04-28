@@ -64,6 +64,11 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 
 		}
 
+
+		public override void ExceptionCaught(IChannelHandlerContext ctx, Exception exception)
+		{ 
+		}
+
 		private void WriteS0S1S2(IChannelHandlerContext ctx)
 		{
 			// S0+S1+S2

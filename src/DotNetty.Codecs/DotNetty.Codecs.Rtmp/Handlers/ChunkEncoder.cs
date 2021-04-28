@@ -17,6 +17,10 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 		public bool FirstVideo { get; set; } = true;
 		public bool FirstAudio { get; set; } = true;
 
+		public override void ExceptionCaught(IChannelHandlerContext ctx, Exception exception)
+		{ 
+		}
+
 		protected override void Encode(IChannelHandlerContext ctx, AbstractRtmpMessage msg, IByteBuffer output)
 		{
 			if (msg is SetChunkSize)

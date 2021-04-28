@@ -5,6 +5,8 @@ using Microsoft.Extensions.Logging;
 using Surging.Core.CPlatform.Module;
 using Surging.Core.CPlatform.Runtime.Server;
 using Surging.Core.LiveStream.Configurations;
+using Surging.Core.LiveStream.Runtime;
+using Surging.Core.LiveStream.Runtime.Implementation;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,8 +16,6 @@ namespace Surging.Core.LiveStream
 {
     class LiveStreamModule : EnginePartModule
     {
-        private readonly ConcurrentDictionary<StreamName, MediaStream> mediaStreamDic =
-            new ConcurrentDictionary<StreamName, MediaStream>();
         public override void Initialize(AppModuleContext context)
         {
             base.Initialize(context);
@@ -32,8 +32,12 @@ namespace Surging.Core.LiveStream
             if (section.Exists())
                 options = section.Get<LiveStreamOption>();
             AppConfig.Option = options;
+            builder.RegisterType(typeof(RtmpRemoteInvokeService)).As(typeof(IRtmpRemoteInvokeService)).SingleInstance();
+            builder.RegisterType(typeof(MediaStreamProvider)).As(typeof(IMediaStreamProvider)).SingleInstance();
+            builder.RegisterType(typeof(LiveStreamServiceExecutor)).Named("Rtmp",typeof(IServiceExecutor)).SingleInstance();
             base.RegisterBuilder(builder);
             RegisterRtmpProtocol(builder, options);
+            if(AppConfig.Option.EnableHttpFlv)
             RegisterHttpFlvProtocol(builder, options);
         }
 
@@ -44,13 +48,14 @@ namespace Surging.Core.LiveStream
             {
                 return new RtmpMessageListener(provider.Resolve<ILogger<RtmpMessageListener>>(),
                    options.EnableLog? provider.Resolve<ILoggerFactory>() : new LoggerFactory(),
-                      mediaStreamDic
+                      provider.Resolve<IMediaStreamProvider>().GetMediaStream()
                       );
             }).SingleInstance();
             builder.Register(provider =>
             {
                 var messageListener = provider.Resolve<RtmpMessageListener>();
-                return new RtmpServiceHost(async endPoint =>
+                var serviceExecutor = provider.ResolveNamed<IServiceExecutor>("Rtmp");
+                return new RtmpServiceHost(serviceExecutor,async endPoint =>
                 {
                     await messageListener.StartAsync(endPoint);
                     return messageListener;
@@ -64,7 +69,7 @@ namespace Surging.Core.LiveStream
             builder.Register(provider =>
             {
                 return new HttpFlvMessageListener(provider.Resolve<ILogger<HttpFlvMessageListener>>(),
-                      mediaStreamDic
+                       provider.Resolve<IMediaStreamProvider>().GetMediaStream()
                       );
             }).SingleInstance();
             builder.Register(provider =>

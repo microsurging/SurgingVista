@@ -6,6 +6,7 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 {
     public  enum DecodeState
     {
+         NONE,
         STATE_HEADER, 
         STATE_PAYLOAD
     }

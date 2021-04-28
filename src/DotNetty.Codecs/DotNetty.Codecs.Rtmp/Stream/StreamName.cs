@@ -1,14 +1,19 @@
-﻿using System;
+﻿using MessagePack;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace DotNetty.Codecs.Rtmp.Stream
 {
+	[MessagePackObject]
 	public class StreamName
 	{
+		[Key(0)]
 		public String App { get; set; }
+		[Key(1)]
 		public String Name { get; set; }
 
+		[Key(2)]
 		public bool IsObsClient { get; set; }
 
 
