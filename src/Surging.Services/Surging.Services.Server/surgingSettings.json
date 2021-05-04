@@ -133,10 +133,11 @@
     }
   },
   "LiveStream": {
-    "RtmpPort": 76,
-    "HttpFlvPort": 77,
-    "EnableLog": true,
-    "RouteTemplate": "live1"
+    "RtmpPort": 76, //rtmp 端口
+    "HttpFlvPort": 77, //HttpFlv 端口
+    "EnableLog": true, //是否启用log
+    "RouteTemplate": "live1", //直播服务路由规则名称，可以根据规则设置，比如集群节点2，可以设置live2, 集群节点3，可以设置live3
+    "ClusterNode": 2 //集群节点数里，会根据routetemplate 转推流
   },
   "EventBus": {
     "EventBusConnection": "${EventBusConnection}|localhost",

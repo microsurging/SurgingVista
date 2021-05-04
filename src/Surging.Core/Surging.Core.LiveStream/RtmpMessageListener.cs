@@ -40,12 +40,12 @@ namespace Surging.Core.LiveStream
             var bootstrap = new ServerBootstrap();
             if (AppConfig.Option.DisablePooled)
                 bootstrap = bootstrap.Option(ChannelOption.Allocator, UnpooledByteBufferAllocator.Default);
-           var bossGroup = new MultithreadEventLoopGroup();
-           var workerGroup =  new MultithreadEventLoopGroup() ;
-            bootstrap.Channel<TcpServerSocketChannel>(); 
+            var bossGroup = new MultithreadEventLoopGroup();
+            var workerGroup = new MultithreadEventLoopGroup();
+            bootstrap.Channel<TcpServerSocketChannel>();
             bootstrap
-            .Option(ChannelOption.SoBacklog, 128) 
-              .ChildOption(ChannelOption.SoKeepalive ,true)
+            .Option(ChannelOption.SoBacklog, 128)
+              .ChildOption(ChannelOption.SoKeepalive, true)
             .Group(bossGroup)
             .ChildHandler(new ActionChannelInitializer<IChannel>(channel =>
             {
@@ -54,19 +54,19 @@ namespace Surging.Core.LiveStream
                 pipeline.AddLast(new HandShakeDecoder());
                 pipeline.AddLast(new ChunkDecoder());
                 pipeline.AddLast(new ChunkEncoder());
-                pipeline.AddLast(workerGroup,new RtmpMessageHandler(_mediaStreamDic,async (contenxt,key, message) =>
-                {
-                    var dic = new Dictionary<StreamName, AbstractRtmpMessage>();
-                    dic.Add(key, message);
-                    await OnReceived(null, new TransportMessage(dic));
-                    message = null;
-                }, new RtmpConfig
-                {
-                    App = AppConfig.Option.RouteTemplate,
-                    IsSaveFlvFile = AppConfig.Option.IsSaveFlvFile,
-                    SaveFlvFilePath = AppConfig.Option.SaveFlvFilePath
-                }));
-           
+                pipeline.AddLast(workerGroup, new RtmpMessageHandler(_mediaStreamDic, async (contenxt, key, message) =>
+                  {
+                      var dic = new Dictionary<StreamName, AbstractRtmpMessage>();
+                      dic.Add(key, message);
+                      await OnReceived(null, new TransportMessage(dic));
+                      message = null;
+                  }, new RtmpConfig
+                  {
+                      App = AppConfig.Option.RouteTemplate,
+                      IsSaveFlvFile = AppConfig.Option.IsSaveFlvFile,
+                      SaveFlvFilePath = AppConfig.Option.SaveFlvFilePath
+                  }));
+
             }));
             try
             {
