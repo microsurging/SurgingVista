@@ -32,11 +32,12 @@ namespace Surging.Core.LiveStream
         {
             var bootstrap = new ServerBootstrap();
             var bossGroup = new MultithreadEventLoopGroup();
-            var workerGroup = new MultithreadEventLoopGroup();
+            var workerGroup = new MultithreadEventLoopGroup(); 
+            if (AppConfig.Option.DisablePooled)
+                bootstrap = bootstrap.Option(ChannelOption.Allocator, UnpooledByteBufferAllocator.Default);
             bootstrap.Channel<TcpServerSocketChannel>();
             bootstrap
             .Option(ChannelOption.SoBacklog, 128)
-            .ChildOption(ChannelOption.Allocator, PooledByteBufferAllocator.Default)
               .ChildOption(ChannelOption.SoKeepalive, true)
             .Group(bossGroup)
             .ChildHandler(new ActionChannelInitializer<IChannel>(channel =>

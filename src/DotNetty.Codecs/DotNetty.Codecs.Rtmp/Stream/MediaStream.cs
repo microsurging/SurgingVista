@@ -8,6 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -27,7 +28,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 		private int? _obsTimeStamp;
 		private bool _flvHeadAndMetadataWritten = false;
 		protected readonly ConcurrentDictionary<string, IChannel> _subscribers;
-		protected readonly List<IChannel> _httpFLvSubscribers;
+		protected readonly ConcurrentDictionary<string, IChannel> _httpFLvSubscribers;
 
 		public Dictionary<String, Object> Metadata { get; set; }
 
@@ -36,7 +37,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 		public MediaStream(StreamName streamName)
 		{
 			_subscribers = new ConcurrentDictionary<string, IChannel>();
-			_httpFLvSubscribers = new List<IChannel>();
+			_httpFLvSubscribers = new ConcurrentDictionary<string, IChannel>();
 			_content = new List<AbstractRtmpMediaMessage>();
 			_streamName = streamName;
 			if(RtmpConfig.Instance.IsSaveFlvFile)
@@ -269,7 +270,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 		public async Task AddHttpFlvSubscriber(IChannel channel)
 		{
 			logger.Info($"http flv subscriber : {channel.RemoteAddress} is added to stream :{_streamName}");
-			_httpFLvSubscribers.Add(channel);
+			_httpFLvSubscribers.GetOrAdd(channel.RemoteAddress.ToString(), p => channel); ;
 			byte[] meta = EncodeFlvHeaderAndMetadata();
 			await channel.WriteAndFlushAsync(Unpooled.WrappedBuffer(meta));
 
@@ -282,18 +283,17 @@ namespace DotNetty.Codecs.Rtmp.Stream
 				byte[] aac = EncodeMediaAsFlvTagAndPrevTagSize(_aacAudioSpecificConfig);
 				await channel.WriteAndFlushAsync(Unpooled.WrappedBuffer(aac));
 			}
-			// 4. write content
 
-			foreach (var msg in _content)
-			{
-				await channel.WriteAndFlushAsync(Unpooled.WrappedBuffer(EncodeMediaAsFlvTagAndPrevTagSize(msg)));
+			var content1 = new List<AbstractRtmpMediaMessage>(_content);
+			foreach (var msg in content1)
+			{ 
+				await channel.WriteAndFlushAsync(Unpooled.WrappedBuffer(EncodeMediaAsFlvTagAndPrevTagSize(msg))); 
 			}
 
 		}
 
 		public async void BroadCastToSubscribers(AbstractRtmpMediaMessage msg)
 		{
-			var iterator = _subscribers.GetEnumerator();
 			foreach (var item in _subscribers)
 			{
 				if (item.Value.Active)
@@ -320,13 +320,13 @@ namespace DotNetty.Codecs.Rtmp.Stream
 				foreach (var item in _httpFLvSubscribers)
 				{
 					var wrappedBuffer = Unpooled.WrappedBuffer(encoded);
-					if (item.Active)
+					if (item.Value.Active)
 					{
-						await item.WriteAndFlushAsync(wrappedBuffer);
+						await item.Value.WriteAndFlushAsync(wrappedBuffer);
 					}
 					else
 					{
-						_httpFLvSubscribers.Remove(item);
+						_httpFLvSubscribers.Remove(item.Key,  out IChannel channel);
 					}
 
 				}
@@ -357,7 +357,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 				foreach (var subscriber in _httpFLvSubscribers)
 				{
 					var content = new DefaultLastHttpContent();
-					await subscriber.WriteAndFlushAsync(EmptyLastHttpContent.Default);
+					await subscriber.Value.WriteAndFlushAsync(EmptyLastHttpContent.Default);
 				}
 			}
 			catch

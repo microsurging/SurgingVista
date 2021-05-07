@@ -25,7 +25,7 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 				var req = (IHttpRequest)msg;
 
 				var uri = req.Uri;
-				var streamName = uri.Split('/');
+				var streamName = uri.Split('/',StringSplitOptions.RemoveEmptyEntries);
 				if (streamName.Length != 2) {
 					HttpResponseStreamNotExist(ctx, uri);
 					return;
@@ -62,5 +62,12 @@ namespace DotNetty.Codecs.Rtmp.Handlers
 			response.Headers.Add(HttpHeaderNames.ContentType, "text/plain");
 			ctx.WriteAndFlushAsync(response);
 		}
+
+		public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
+		{
+			context.CloseAsync();
+
+		}
+
 	}
 }
