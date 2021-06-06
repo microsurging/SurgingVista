@@ -24,23 +24,25 @@ namespace Surging.Core.ProxyGenerator.Implementation
             if (parameters.ContainsKey("serviceKey"))
             {
                 var serviceKey = parameters["serviceKey"].ToString();
-                var proxy = ServiceResolver.Current.GetService<RemoteServiceProxy>(serviceKey);
-                if (proxy == null)
-                {
-                     proxy = new RemoteServiceProxy(serviceKey.ToString(), _serviceProvider);
-                    ServiceResolver.Current.Register(serviceKey.ToString(), proxy);
-                }
+                //var proxy = ServiceResolver.Current.GetService<RemoteServiceProxy>(serviceKey);
+                //if (proxy == null)
+                //{
+                //     proxy = new RemoteServiceProxy(serviceKey.ToString(), _serviceProvider);
+                //    ServiceResolver.Current.Register(serviceKey.ToString(), proxy);
+                //}
+                 var proxy = new RemoteServiceProxy(serviceKey, _serviceProvider);
                 result = await proxy.Invoke<T>(parameters, serviceRoute.ServiceDescriptor.Id);
                     
             }
             else
             {
-                var proxy = ServiceResolver.Current.GetService<RemoteServiceProxy>();
-                if (proxy == null)
-                {
-                     proxy = new RemoteServiceProxy(null, _serviceProvider);
-                    ServiceResolver.Current.Register(null, proxy);
-                }
+                //var proxy = ServiceResolver.Current.GetService<RemoteServiceProxy>();
+                var proxy = new RemoteServiceProxy(null, _serviceProvider);
+                //if (proxy == null)
+                //{
+                //     proxy = new RemoteServiceProxy(null, _serviceProvider);
+                //    ServiceResolver.Current.Register(null, proxy);
+                //}
                 result = await proxy.Invoke<T>(parameters, serviceRoute.ServiceDescriptor.Id);
             }
             return result;
@@ -64,7 +66,7 @@ namespace Surging.Core.ProxyGenerator.Implementation
             else
             {
                 //var proxy = ServiceResolver.Current.GetService<RemoteServiceProxy>();
-                var proxy = new RemoteServiceProxy(serviceKey, _serviceProvider);
+                var proxy = new RemoteServiceProxy(null, _serviceProvider);
                 //if (proxy == null)
                 //{
                 //    proxy = new RemoteServiceProxy(null, _serviceProvider);
