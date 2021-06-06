@@ -52,22 +52,24 @@ namespace Surging.Core.ProxyGenerator.Implementation
             T result = default(T);
             if (!string.IsNullOrEmpty(serviceKey))
             {
-                var proxy = ServiceResolver.Current.GetService<RemoteServiceProxy>(serviceKey);
-                if (proxy == null)
-                {
-                    proxy = new RemoteServiceProxy(serviceKey, _serviceProvider);
-                    ServiceResolver.Current.Register(serviceKey, proxy);
-                }
+               // var proxy = ServiceResolver.Current.GetService<RemoteServiceProxy>(serviceKey);
+               var proxy = new RemoteServiceProxy(serviceKey, _serviceProvider);
+                //if (proxy == null)
+                //{
+                //    proxy = new RemoteServiceProxy(serviceKey, _serviceProvider);
+                //    ServiceResolver.Current.Register(serviceKey, proxy);
+                //}
                 result = await proxy.Invoke<T>(parameters, serviceRoute.ServiceDescriptor.Id);
             }
             else
             {
-                var proxy = ServiceResolver.Current.GetService<RemoteServiceProxy>();
-                if (proxy == null)
-                {
-                    proxy = new RemoteServiceProxy(null, _serviceProvider);
-                    ServiceResolver.Current.Register(null, proxy);
-                }
+                //var proxy = ServiceResolver.Current.GetService<RemoteServiceProxy>();
+                var proxy = new RemoteServiceProxy(serviceKey, _serviceProvider);
+                //if (proxy == null)
+                //{
+                //    proxy = new RemoteServiceProxy(null, _serviceProvider);
+                //    ServiceResolver.Current.Register(null, proxy);
+                //}
                 result = await proxy.Invoke<T>(parameters, serviceRoute.ServiceDescriptor.Id);
             }
             return result;
