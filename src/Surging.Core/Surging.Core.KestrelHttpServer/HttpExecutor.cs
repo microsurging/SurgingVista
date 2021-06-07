@@ -184,6 +184,10 @@ namespace Surging.Core.KestrelHttpServer
                     _logger.LogError(exception, "发送响应消息时候发生了异常。");
                 
             }
+            finally
+            {
+                RpcContext.RemoveContext();
+            }
         }
 
         private static string GetExceptionMessage(Exception exception)
